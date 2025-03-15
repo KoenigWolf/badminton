@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザーモデル
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // ユーザープロフィール情報
+  age        Int?
+  gender     String?
+  skillLevel String? // 初心者/中級者/上級者
+  prefecture String? // 都道府県
+  bio        String? // 自己紹介文
+
+  // 関連情報
+  reviews       Review[]
+  favorites     Favorite[]
+  circleMembers CircleMember[]
+  circleAdmin   CircleAdmin[]
+  applications  Application[]
+}
+
+// サークルモデル
+model Circle {
+  id                String   @id @default(cuid())
+  name              String
+  description       String
+  prefecture        String // 都道府県
+  city              String // 市区町村
+  address           String? // 詳細住所
+  activityFrequency String // 活動頻度（週1回、月2回など）
+  activityDays      String[] // 活動曜日
+  activityTimes     String[] // 活動時間帯
+  skillLevel        String[] // 対象レベル（初心者/中級者/上級者）
+  fee               Int // 月会費
+  memberCount       Int? // 会員数
+  isRecruiting      Boolean  @default(true) // 募集中かどうか
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 詳細情報
+  website     String? // 公式サイトURL
+  socialLinks Json? // SNSリンク（Twitter、Instagram、Facebookなど）
+  facilities  String[] // 利用施設
+  equipments  String[] // 備品情報（シャトル代含むか、ラケットレンタルあるかなど）
+  ageGroups   String[] // 年齢層
+  genderRatio String? // 男女比
+
+  // 関連情報
+  images       CircleImage[]
+  reviews      Review[]
+  members      CircleMember[]
+  admins       CircleAdmin[]
+  events       Event[]
+  favorites    Favorite[]
+  applications Application[]
+}
+
+// サークル画像モデル
+model CircleImage {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+}
+
+// レビューモデル
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int // 1-5の評価
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+}
+
+// お気に入りモデル
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, circleId])
+}
+
+// イベントモデル
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  circleId    String
+  circle      Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+}
+
+// サークルメンバーモデル（メンバーシップ）
+model CircleMember {
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
+  status   String // active, inactive
+  role     String? // 役割（キャプテン、会計など）
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId String
+  circle   Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, circleId])
+}
+
+// サークル管理者モデル
+model CircleAdmin {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  isOwner   Boolean  @default(false) // オーナー権限があるか
+
+  @@unique([userId, circleId])
+}
+
+// 参加申請モデル
+model Application {
+  id          String    @id @default(cuid())
+  message     String?
+  status      String // pending, approved, rejected
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  processedAt DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId    String
+  circle      Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+}
