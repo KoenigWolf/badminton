@@ -17,6 +17,8 @@ import {
 } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Users, Trophy, Activity } from "@phosphor-icons/react";
 
 // ─────────────────────────────
 // DashboardPageコンポーネント：ユーザーのダッシュボードページ
@@ -51,7 +53,11 @@ export default function DashboardPage() {
 
   // ローディング中の場合は、スピナー表示
   if (status === "loading") {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   // 認証済みでない場合、何も表示しない（useEffectでリダイレクト済み）
@@ -60,22 +66,113 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* ヘッダー部分：ユーザーの挨拶とログアウトボタン */}
-          <DashboardHeader session={session} onLogout={handleLogout} isLoading={isLoading} />
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">ダッシュボード</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">今後の試合</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              今週の予定された試合数
+            </p>
+          </CardContent>
+        </Card>
 
-          {/* 各種情報カード：グリッドレイアウトでユーザープロフィール、お気に入りサークル、参加申請状況を表示 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <UserProfileCard session={session} router={router} />
-            <FavoriteCirclesCard router={router} />
-            <ApplicationStatusCard router={router} />
-          </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">チームメンバー</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">
+              アクティブなメンバー数
+            </p>
+          </CardContent>
+        </Card>
 
-          {/* 所属サークルカード */}
-          <AffiliatedCirclesCard router={router} />
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">勝率</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">65%</div>
+            <p className="text-xs text-muted-foreground">
+              直近10試合の勝率
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">活動時間</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24h</div>
+            <p className="text-xs text-muted-foreground">
+              今週の合計活動時間
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>最近の試合結果</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">対戦相手 {i}</p>
+                    <p className="text-sm text-muted-foreground">
+                      2024-03-{i} 14:00
+                    </p>
+                  </div>
+                  <Button variant={i % 2 === 0 ? "default" : "destructive"}>
+                    {i % 2 === 0 ? "勝利" : "敗北"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>今後の予定</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">練習会 {i}</p>
+                    <p className="text-sm text-muted-foreground">
+                      2024-03-{i + 10} 19:00
+                    </p>
+                  </div>
+                  <Button variant="outline">詳細</Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
