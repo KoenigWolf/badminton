@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { fontFamily } from "tailwindcss/defaultTheme";
+import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
 
 const config: Config = {
@@ -20,7 +20,7 @@ const config: Config = {
         "muted-foreground": "#94a3b8", // muted のテキストカラー
       },
       fontFamily: {
-        sans: ["Inter", ...fontFamily.sans], // Inter フォントを優先
+        sans: ["Inter", ...(defaultTheme.fontFamily.sans as string[])], // Inter フォントを優先
       },
       borderRadius: {
         lg: "12px",

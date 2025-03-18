@@ -24,8 +24,13 @@ import {
 import { LevelBadge } from "@/components/ui/level-badge";
 import { DayBadge } from "@/components/ui/day-badge";
 import { MdLocationOn } from "react-icons/md";
-import { FaRegCalendarAlt, FaYen } from "react-icons/fa";
+import { FaRegCalendarAlt, FaYenSign } from "react-icons/fa";
 import { BiTime } from "react-icons/bi";
+
+// formatCurrency関数：数値を通貨形式にフォーマットする
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('ja-JP').format(value);
+};
 
 // バリデーションスキーマ
 const registerCircleSchema = z.object({
@@ -377,31 +382,41 @@ export default function RegisterCirclePage() {
 
                 {/* 活動施設 */}
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 mb-1 text-sm">
+                  <label 
+                    htmlFor="facilities-container" 
+                    className="block text-gray-700 dark:text-gray-300 mb-1 text-sm"
+                  >
                     活動施設・体育館名
                   </label>
                   
-                  {facilities.map((facility, index) => (
-                    <div key={`facility-${index}`} className="flex items-center gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={facility}
-                        onChange={(e) => updateFacility(index, e.target.value)}
-                        className="flex-grow rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
-                        placeholder="例：渋谷区スポーツセンター"
-                      />
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removeFacilityField(index)}
-                          className="p-2 text-gray-500 hover:text-red-500"
-                          aria-label="削除"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  <div id="facilities-container">
+                    {facilities.map((facility, index) => {
+                      const facilityId = `facility-${index}-${facility.replace(/\s+/g, '-').toLowerCase()}`;
+                      return (
+                        <div key={facilityId} className="flex items-center gap-2 mb-2">
+                          <input
+                            type="text"
+                            id={facilityId}
+                            value={facility}
+                            onChange={(e) => updateFacility(index, e.target.value)}
+                            className="flex-grow rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
+                            placeholder="例：渋谷区スポーツセンター"
+                            aria-label={`活動施設 ${index + 1}`}
+                          />
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => removeFacilityField(index)}
+                              className="p-2 text-gray-500 hover:text-red-500"
+                              aria-label={`活動施設${index + 1}を削除`}
+                            >
+                              <Trash2 size={18} aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                   
                   <button
                     type="button"
@@ -444,64 +459,74 @@ export default function RegisterCirclePage() {
 
               {/* 活動曜日 */}
               <div className="mb-6">
-                <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                  主な活動曜日 <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <label
-                      key={day.id}
-                      className={`cursor-pointer inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                        watch('activityDays')?.includes(day.id)
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        value={day.id}
-                        checked={watch('activityDays')?.includes(day.id)}
-                        onChange={() => toggleDay(day.id)}
-                        className="sr-only"
-                      />
-                      {day.label}
-                    </label>
-                  ))}
-                </div>
-                {errors.activityDays && (
-                  <p className="mt-1 text-red-500 text-sm">{errors.activityDays.message}</p>
-                )}
+                <fieldset>
+                  <legend id="activity-days-label" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                    主な活動曜日 <span className="text-red-500">*</span>
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <label
+                        key={day.id}
+                        htmlFor={`activity-day-${day.id}`}
+                        className={`cursor-pointer inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+                          watch('activityDays')?.includes(day.id)
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`activity-day-${day.id}`}
+                          value={day.id}
+                          checked={watch('activityDays')?.includes(day.id)}
+                          onChange={() => toggleDay(day.id)}
+                          className="sr-only"
+                          aria-label={`${day.label}曜日に活動`}
+                        />
+                        {day.label}
+                      </label>
+                    ))}
+                  </div>
+                  {errors.activityDays && (
+                    <p className="mt-1 text-red-500 text-sm">{errors.activityDays.message}</p>
+                  )}
+                </fieldset>
               </div>
 
               {/* 対象レベル */}
               <div className="mb-6">
-                <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                  対象レベル <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {SKILL_LEVELS.map((level) => (
-                    <label
-                      key={level.id}
-                      className={`cursor-pointer inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                        watch('skillLevels')?.includes(level.id)
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        value={level.id}
-                        checked={watch('skillLevels')?.includes(level.id)}
-                        onChange={() => toggleLevel(level.id)}
-                        className="sr-only"
-                      />
-                      {level.label}
-                    </label>
-                  ))}
-                </div>
-                {errors.skillLevels && (
-                  <p className="mt-1 text-red-500 text-sm">{errors.skillLevels.message}</p>
-                )}
+                <fieldset>
+                  <legend id="skill-levels-label" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                    対象レベル <span className="text-red-500">*</span>
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {SKILL_LEVELS.map((level) => (
+                      <label
+                        key={level.id}
+                        htmlFor={`skill-level-${level.id}`}
+                        className={`cursor-pointer inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+                          watch('skillLevels')?.includes(level.id)
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`skill-level-${level.id}`}
+                          value={level.id}
+                          checked={watch('skillLevels')?.includes(level.id)}
+                          onChange={() => toggleLevel(level.id)}
+                          className="sr-only"
+                          aria-label={`${level.label}レベル対象`}
+                        />
+                        {level.label}
+                      </label>
+                    ))}
+                  </div>
+                  {errors.skillLevels && (
+                    <p className="mt-1 text-red-500 text-sm">{errors.skillLevels.message}</p>
+                  )}
+                </fieldset>
               </div>
 
               {/* 会費 */}
@@ -526,6 +551,13 @@ export default function RegisterCirclePage() {
                 {errors.fee && (
                   <p className="mt-1 text-red-500 text-sm">{errors.fee.message}</p>
                 )}
+                
+                <div className="flex items-center text-gray-500 dark:text-gray-400 mt-2">
+                  <FaYenSign className="mr-2" aria-hidden="true" />
+                  <span>
+                    月額会費：{formatCurrency(watch('fee') || 0)}円（入会金：{formatCurrency(0)}円）
+                  </span>
+                </div>
               </div>
             </div>
 

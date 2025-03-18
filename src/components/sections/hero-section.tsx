@@ -81,7 +81,8 @@ function HeroTextContent() {
         理想の
         <span className="text-blue-600 dark:text-blue-400 relative">
           バドミントン
-          <svg className="absolute w-full h-3 left-0 -bottom-1" viewBox="0 0 200 8" preserveAspectRatio="none">
+          <svg className="absolute w-full h-3 left-0 -bottom-1" viewBox="0 0 200 8" preserveAspectRatio="none" aria-hidden="true">
+            <title>装飾的な下線</title>
             <path d="M0,5 Q40,0 80,5 T160,5 T200,5" fill="none" stroke="currentColor" strokeWidth="2" />
           </svg>
         </span>

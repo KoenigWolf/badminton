@@ -80,10 +80,22 @@ export function FeatureSection() {
   return (
     <section className="w-full py-24 bg-white dark:bg-gray-900 relative overflow-hidden">
       {/* 背景装飾 */}
-      <div className="absolute inset-0 pointer-events-none opacity-50">
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-blue-100 dark:bg-blue-900/20 rounded-bl-full" />
-        <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-green-100 dark:bg-green-900/20 rounded-tr-full" />
-      </div>
+      <motion.div
+        // 装飾的な背景要素
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        <svg className="absolute top-0 right-0 w-64 h-64 text-blue-100 dark:text-blue-900/20" viewBox="0 0 100 100" aria-hidden="true">
+          <title>装飾的な背景要素</title>
+          <circle cx="50" cy="50" r="40" fill="currentColor" opacity="0.1" />
+        </svg>
+        <svg className="absolute bottom-0 left-0 w-64 h-64 text-indigo-100 dark:text-indigo-900/20" viewBox="0 0 100 100" aria-hidden="true">
+          <title>装飾的な背景要素</title>
+          <circle cx="50" cy="50" r="40" fill="currentColor" opacity="0.1" />
+        </svg>
+      </motion.div>
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
