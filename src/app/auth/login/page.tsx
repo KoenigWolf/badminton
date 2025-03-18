@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth/auth-form";
-import { FaSignInAlt } from "react-icons/fa";
+import { User } from "@phosphor-icons/react";
 
 export const metadata: Metadata = {
   title: "ログイン | バドミントンサークルファインダー",
@@ -14,7 +14,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         <div className="text-center">
           <div className="flex justify-center mb-2">
-            <FaSignInAlt className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             ログイン

@@ -83,35 +83,45 @@ export function AuthForm({
     setError(null);
     
     try {
+      // 外部のサブミットハンドラが提供されている場合はそちらを使用
       if (onExternalSubmit) {
         await onExternalSubmit(values);
         return;
       }
       
-      // ログイン処理
+      // 内部ログイン処理（type === "login"のとき）
       if (type === "login") {
-        const result = await signIn("credentials", {
-          redirect: false,
-          email: values.email,
-          password: values.password,
-        });
-        
-        if (result?.error) {
-          setError("メールアドレスまたはパスワードが正しくありません");
-          toast.error("ログインエラー", {
-            description: "認証情報が正しくありません。もう一度お試しください。",
+        try {
+          const result = await signIn("credentials", {
+            redirect: false,
+            email: values.email,
+            password: values.password,
           });
-          return;
+          
+          if (result?.error) {
+            setError("メールアドレスまたはパスワードが正しくありません");
+            toast.error("ログインエラー", {
+              description: "認証情報が正しくありません。もう一度お試しください。",
+            });
+            return;
+          }
+          
+          // ログイン成功
+          toast.success("ログイン成功", {
+            description: "ようこそ！",
+          });
+          
+          // リダイレクト先に遷移
+          router.push(callbackUrl);
+          router.refresh(); // 認証状態をページに反映するためにリフレッシュ
+        } catch (error) {
+          console.error("Login error:", error);
+          toast.error("ログインエラー", {
+            description: "処理中にエラーが発生しました。もう一度お試しください。",
+          });
         }
-        
-        // ログイン成功
-        toast.success("ログイン成功", {
-          description: "ようこそ！",
-        });
-        router.push(callbackUrl);
-        router.refresh();
       }
-    } catch (error) {
+    } catch (e) {
       setError("エラーが発生しました。もう一度お試しください。");
       toast.error("エラー", {
         description: "処理中にエラーが発生しました。もう一度お試しください。",
@@ -121,7 +131,7 @@ export function AuthForm({
     }
   }
 
-  // ソーシャルログイン
+  // ソーシャルログイン処理
   const handleSocialLogin = async (provider: string) => {
     setIsLoading(true);
     try {
@@ -129,6 +139,7 @@ export function AuthForm({
         callbackUrl,
       });
     } catch (error) {
+      console.error(`${provider} login error:`, error);
       toast.error("ログインエラー", {
         description: `${provider}でのログインに失敗しました。もう一度お試しください。`,
       });

@@ -1,146 +1,104 @@
 import Link from "next/link";
 import { Facebook, Instagram, Twitter } from "lucide-react";
+import { GiShuttlecock } from "react-icons/gi";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
+// 定数化：フッター内リンクデータ
+const FOOTER_LINKS = [
+  {
+    title: "サービスについて",
+    links: [
+      { href: "/about", label: "当サイトについて" },
+      { href: "/privacy", label: "プライバシーポリシー" },
+      { href: "/terms", label: "利用規約" },
+      { href: "/contact", label: "お問い合わせ" },
+    ],
+  },
+  {
+    title: "サークルオーナー向け",
+    links: [
+      { href: "/register-circle", label: "サークルを登録する" },
+      { href: "/manage-circle", label: "サークル管理" },
+      { href: "/guides", label: "運用ガイド" },
+      { href: "/faq", label: "よくある質問" },
+    ],
+  },
+  {
+    title: "サークル検索",
+    links: [
+      { href: "/search?level=beginner", label: "初心者向けサークル" },
+      { href: "/search?level=intermediate", label: "中級者向けサークル" },
+      { href: "/search?level=advanced", label: "上級者向けサークル" },
+      { href: "/search", label: "すべてのサークル" },
+    ],
+  },
+];
+
+// 定数化：SNSリンクデータ（lucide-react のアイコンを使用）
+const SOCIAL_LINKS = [
+  { href: "https://twitter.com", icon: Twitter, label: "Twitter" },
+  { href: "https://facebook.com", icon: Facebook, label: "Facebook" },
+  { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
+];
+
+// フッターリンクセクション：Card コンポーネントでリンク群をラップ
+const FooterLinks = ({ title, links }: { title: string; links: { href: string; label: string }[] }) => (
+  <Card className="border-none shadow-none">
+    <CardHeader>
+      <CardTitle className="text-lg">{title}</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-2">
+      {links.map(({ href, label }) => (
+        <Button key={href} variant="link" asChild className="p-0">
+          <Link href={href}>{label}</Link>
+        </Button>
+      ))}
+    </CardContent>
+  </Card>
+);
+
+// フッターコンポーネント：全体レイアウトはシンプルに shadcn/ui で統一
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 dark:bg-gray-900 pt-16 pb-12 border-t border-gray-200 dark:border-gray-800">
+    <footer className="bg-background border-t py-12">
       <div className="container mx-auto px-4">
+        {/* 上部：ロゴ・サービス説明・SNSリンク */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* ロゴとサービス紹介 */}
           <div className="md:col-span-1">
+            {/* ロゴ部分：GiShuttlecock を使用して SVG の記述を削減 */}
             <div className="flex items-center space-x-2 mb-4">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-blue-600 dark:text-blue-400"
-                aria-hidden="true"
-              >
-                <path
-                  d="M7.5 4.5L7.5 11.25M7.5 11.25L7.5 19.5M7.5 11.25L17.25 19.5M7.5 11.25L16.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="font-bold text-lg text-gray-900 dark:text-white">
-                BadFinder
-              </span>
+              <GiShuttlecock className="w-8 h-8 text-primary" aria-hidden="true" />
+              <span className="font-bold text-lg text-foreground">BadFinder</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               バドミントンサークルファインダーは、あなたにぴったりのバドミントンサークルを見つけるための検索プラットフォームです。
             </p>
             <div className="flex space-x-4">
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
-              </a>
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
-                aria-label="Facebook"
-              >
-                <Facebook size={20} />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
-                aria-label="Instagram"
-              >
-                <Instagram size={20} />
-              </a>
+              {SOCIAL_LINKS.map(({ href, icon: Icon, label }) => (
+                <Button key={href} variant="ghost" size="icon" asChild>
+                  <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label}>
+                    <Icon size={20} />
+                  </a>
+                </Button>
+              ))}
             </div>
           </div>
 
-          {/* リンクセクション */}
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4">
-              サービスについて
-            </h3>
-            <ul className="space-y-3">
-              {[
-                { href: "/about", label: "当サイトについて" },
-                { href: "/privacy", label: "プライバシーポリシー" },
-                { href: "/terms", label: "利用規約" },
-                { href: "/contact", label: "お問い合わせ" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4">
-              サークルオーナー向け
-            </h3>
-            <ul className="space-y-3">
-              {[
-                { href: "/register-circle", label: "サークルを登録する" },
-                { href: "/manage-circle", label: "サークル管理" },
-                { href: "/guides", label: "運用ガイド" },
-                { href: "/faq", label: "よくある質問" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4">
-              サークル検索
-            </h3>
-            <ul className="space-y-3">
-              {[
-                { href: "/search?level=beginner", label: "初心者向けサークル" },
-                { href: "/search?level=intermediate", label: "中級者向けサークル" },
-                { href: "/search?level=advanced", label: "上級者向けサークル" },
-                { href: "/search", label: "すべてのサークル" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* 各リンクセクション */}
+          {FOOTER_LINKS.map(({ title, links }) => (
+            <FooterLinks key={title} title={title} links={links} />
+          ))}
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            © {new Date().getFullYear()} BadFinder. All rights reserved.
-          </p>
-        </div>
+        <Separator className="my-8" />
+
+        {/* 下部：著作権表示 */}
+        <p className="text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} BadFinder. All rights reserved.
+        </p>
       </div>
     </footer>
   );
-} 
+}

@@ -9,19 +9,6 @@ const protectedPaths = [
   "/profile",
 ];
 
-// 公開パス（常にアクセス可能）
-const publicPaths = [
-  "/",
-  "/search",
-  "/circles",
-  "/about",
-  "/faq",
-  "/auth/login",
-  "/auth/signup",
-  "/auth/error",
-  "/api/auth",
-];
-
 // ログイン済みユーザーがアクセスできないパス（ログイン後はダッシュボードへリダイレクト）
 const authRoutes = [
   "/auth/login",
@@ -57,9 +44,10 @@ export async function middleware(request: NextRequest) {
 // Middlewareが適用されるパス
 export const config = {
   matcher: [
-    // 保護されたルート
-    ...protectedPaths,
-    // 認証ルート
-    ...authRoutes,
+    "/dashboard/:path*",
+    "/manage-circle/:path*",
+    "/profile/:path*",
+    "/auth/login",
+    "/auth/signup",
   ],
 }; 

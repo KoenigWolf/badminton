@@ -1,143 +1,101 @@
 # BadFinder - バドミントンサークル検索サイト
 
-![BadFinder](https://placehold.jp/30/3d4070/ffffff/1200x630.png?text=BadFinder)
+BadFinder は、地域やスキルレベルなどの条件からバドミントンサークルを簡単に検索・発見できるサービスです。サークル運営者はサークル情報を登録でき、バドミントン愛好家は自分に合ったサークルを見つけることができます。
 
-バドミントンサークルを探したい人と、メンバーを募集しているサークルをつなぐマッチングプラットフォームです。地域、活動頻度、レベル、会費などの条件から最適なサークルを見つけることができます。
+![BadFinder トップページ](./public/og-image.jpg)
 
-## 🎯 主な機能
+## 特徴・機能
 
-- **サークル検索**: 地域、活動頻度、スキルレベル、会費などの条件で絞り込み検索
-- **サークル詳細**: 各サークルの詳細情報、写真、レビュー、アクセス情報を確認
-- **ユーザー認証**: メール/パスワード、Google、Facebook、Twitter、GitHub でのログイン
-- **マイページ**: お気に入り登録、参加申請状況の管理
-- **サークル登録**: 新しいサークル情報の登録・管理機能
-- **レビュー機能**: サークルの評価・口コミ投稿
+### ユーザー向け機能
 
-## 🛠️ 技術スタック
+- **高度な検索機能**: 地域、スキルレベル、活動頻度、会費などの条件でサークルを検索
+- **詳細なサークル情報**: 活動内容、場所、頻度、写真、レビューなどを確認
+- **お気に入り機能**: 気になるサークルを保存して後から確認
+- **レビュー・評価**: 実際に参加した人のレビューと評価を確認
+- **モバイル対応**: スマートフォンやタブレットからも快適に利用可能
+
+### サークル管理者向け機能
+
+- **サークル登録・管理**: サークル情報を登録・編集
+- **イベント管理**: 練習会や大会などのイベントを登録・管理
+- **メンバー管理**: メンバーリストの管理や出欠確認
+- **お知らせ機能**: メンバーへのお知らせや連絡事項を投稿
+
+## 技術スタック
 
 ### フロントエンド
 
-- **Next.js 14**: App Router を使用したページ・ルーティング
-- **React 19**: UI コンポーネント構築
-- **TypeScript**: 型安全なコード開発
-- **Tailwind CSS**: ユーティリティファーストのスタイリング
-- **shadcn/ui**: 再利用可能な UI コンポーネント
-- **Framer Motion**: アニメーション効果
-- **react-icons**: アイコンライブラリ
-- **Zod**: フォームバリデーション
+- **Next.js** (App Router): ページのルーティングとデータ取得
+- **React**: コンポーネントベースの UI 構築
+- **TypeScript**: 型安全な JavaScript 開発
+- **TailwindCSS**: ユーティリティファーストの CSS フレームワーク
+- **Shadcn/UI**: Radix UI ベースの UI コンポーネント
+- **Framer Motion**: アニメーション
 
-### バックエンド
+### バックエンド/API
 
-- **Next.js API Routes**: RESTful API エンドポイント
-- **NextAuth.js**: 認証システム
-- **Prisma ORM**: データベースの操作
-- **Supabase/PlanetScale**: データベース（PostgreSQL/MySQL）
-- **bcrypt**: パスワードハッシュ化
+- **Next.js API Routes**: バックエンド API 開発
+- **Prisma**: データベース管理とタイプセーフなクエリ
+- **PlanetScale**: スケーラブルな MySQL データベース
+
+### 認証/セキュリティ
+
+- **NextAuth.js**: 認証ライブラリ (OAuth, JWT)
+- **Zod**: スキーマ検証と型安全性
 
 ### その他ツール
 
-- **ESLint/Prettier**: コードフォーマット・品質管理
-- **Vercel**: デプロイ・ホスティング
+- **ESLint**: コード品質チェック
+- **Prettier**: コードフォーマッティング
 
-## 🚀 インストール方法
+## セットアップ手順
+
+### 前提条件
+
+- Node.js 18.0.0 以上
+- npm または yarn
+- データベース (PlanetScale, MySQL 等)
+
+### インストール手順
+
+1. リポジトリをクローン:
 
 ```bash
-# リポジトリをクローン
 git clone https://github.com/yourusername/badminton.git
 cd badminton
+```
 
-# 依存パッケージをインストール
+2. 依存関係をインストール:
+
+```bash
 npm install
+# または
+yarn install
+```
 
-# 環境変数の設定
-cp .env.example .env.local
-# .env.local を編集して必要な環境変数を設定
+3. 環境変数を設定:
+   `.env.example`ファイルを`.env`にコピーして必要な値を設定します:
 
-# Prismaクライアントの生成
-npx prisma generate
+```bash
+cp .env.example .env
+```
 
-# 開発サーバーを起動
+4. データベースのセットアップ:
+
+```bash
+npx prisma migrate dev
+```
+
+5. 開発サーバーを起動:
+
+```bash
 npm run dev
+# または
+yarn dev
 ```
 
-## 🔧 環境変数の設定
-
-`.env.local` ファイルに以下の環境変数を設定してください：
+6. ブラウザで以下の URL にアクセス:
 
 ```
-# Database
-DATABASE_URL="your-database-connection-string"
-
-# NextAuth.js
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-nextauth-secret
-
-# OAuth Providers (必要に応じて)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-FACEBOOK_CLIENT_ID=your-facebook-client-id
-FACEBOOK_CLIENT_SECRET=your-facebook-client-secret
-TWITTER_CLIENT_ID=your-twitter-client-id
-TWITTER_CLIENT_SECRET=your-twitter-client-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
+http://localhost:3000
 ```
-
-## 📋 使用方法
-
-1. 開発サーバーを起動: `npm run dev`
-2. ブラウザで http://localhost:3000 にアクセス
-3. バドミントンサークルの検索や登録が可能
-
-## 🧪 テスト
-
-```bash
-# テスト実行
-npm test
-
-# カバレッジレポート付きでテスト実行
-npm test -- --coverage
-```
-
-## 📦 ビルド & デプロイ
-
-```bash
-# 本番用ビルド
-npm run build
-
-# 本番モードで起動
-npm start
-```
-
-Vercel へのデプロイ：
-
-```bash
-# Vercel CLIのインストール
-npm i -g vercel
-
-# デプロイ
-vercel
-```
-
-## 🌱 今後の開発予定
-
-- モバイルアプリ対応（React Native）
-- リアルタイムチャット機能
-- イベント管理機能の強化
-- レコメンデーションアルゴリズムの改善
-
-## 👥 貢献方法
-
-1. このリポジトリをフォーク
-2. 新しいブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. Pull Request を作成
-
-## 📄 ライセンス
-
-[MIT License](LICENSE)
-
-## 📞 お問い合わせ
-
-質問や提案がある場合は、Issues を通じてお知らせください。

@@ -7,6 +7,25 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ChevronRight, Upload, AlertCircle, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LevelBadge } from "@/components/ui/level-badge";
+import { DayBadge } from "@/components/ui/day-badge";
+import { MdLocationOn } from "react-icons/md";
+import { FaRegCalendarAlt, FaYen } from "react-icons/fa";
+import { BiTime } from "react-icons/bi";
 
 // バリデーションスキーマ
 const registerCircleSchema = z.object({
@@ -526,9 +545,11 @@ export default function RegisterCirclePage() {
                   {images.map((img) => (
                     <div key={img.id} className="relative group">
                       <div className="w-full aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <img
+                        <Image
                           src={img.preview}
                           alt="アップロード画像プレビュー"
+                          width={200}
+                          height={200}
                           className="w-full h-full object-cover"
                         />
                       </div>
