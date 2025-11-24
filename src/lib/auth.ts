@@ -10,8 +10,12 @@ import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
-  // Prismaアダプターの設定
-  adapter: PrismaAdapter(prisma),
+  // Prismaアダプターの設定（DATABASE_URLが設定されている場合のみ）
+  // ビルド時にデータベース接続エラーを防ぐため
+  ...(process.env.DATABASE_URL ? { adapter: PrismaAdapter(prisma) } : {}),
+  
+  // シークレットキーの設定（ビルドエラーを防ぐため明示的に設定）
+  secret: process.env.NEXTAUTH_SECRET,
   
   // セッションの設定
   session: {
@@ -63,29 +67,45 @@ export const authOptions: NextAuthOptions = {
       }
     }),
     
-    // Googleでのログイン
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    }),
+    // Googleでのログイン（環境変数が設定されている場合のみ）
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     
-    // Facebookでのログイン
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID as string,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
-    }),
+    // Facebookでのログイン（環境変数が設定されている場合のみ）
+    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET
+      ? [
+          FacebookProvider({
+            clientId: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     
-    // Twitterでのログイン
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID as string,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET as string,
-    }),
+    // Twitterでのログイン（環境変数が設定されている場合のみ）
+    ...(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET
+      ? [
+          TwitterProvider({
+            clientId: process.env.TWITTER_CLIENT_ID,
+            clientSecret: process.env.TWITTER_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     
-    // GitHubでのログイン
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-    }),
+    // GitHubでのログイン（環境変数が設定されている場合のみ）
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GithubProvider({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          }),
+        ]
+      : []),
   ],
   
   // 認証関連のページのカスタマイズ
