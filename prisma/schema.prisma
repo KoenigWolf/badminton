@@ -13,7 +13,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================
 // ユーザーモデル
+// ============================================
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -37,25 +39,41 @@ model User {
   circleMembers CircleMember[]
   circleAdmin   CircleAdmin[]
   applications  Application[]
+
+  @@index([email])
+  @@index([prefecture])
+  @@index([skillLevel])
 }
 
+// ============================================
 // サークルモデル
+// ============================================
 model Circle {
-  id                String   @id @default(cuid())
-  name              String
-  description       String
-  prefecture        String // 都道府県
-  city              String // 市区町村
-  address           String? // 詳細住所
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  prefecture  String // 都道府県
+  city        String // 市区町村
+  address     String? // 詳細住所
+
+  // 地理的検索用（将来的に地図検索機能を追加する場合）
+  latitude  Float? // 緯度
+  longitude Float? // 経度
+
   activityFrequency String // 活動頻度（週1回、月2回など）
   activityDays      String[] // 活動曜日
   activityTimes     String[] // 活動時間帯
   skillLevel        String[] // 対象レベル（初心者/中級者/上級者）
   fee               Int // 月会費
-  memberCount       Int? // 会員数
+  memberCount       Int      @default(0) // 会員数（計算済み）
   isRecruiting      Boolean  @default(true) // 募集中かどうか
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+
+  // レビュー評価の集計値（パフォーマンス向上のため非正規化）
+  averageRating Float? @default(0) // 平均評価（1-5）
+  reviewCount   Int    @default(0) // レビュー数
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 詳細情報
   website     String? // 公式サイトURL
@@ -65,6 +83,10 @@ model Circle {
   ageGroups   String[] // 年齢層
   genderRatio String? // 男女比
 
+  // 全文検索用（PostgreSQLの全文検索機能を使用）
+  // Prismaでは直接サポートしていないため、マイグレーション後に手動で追加
+  // searchVector Unsupported("tsvector")? // PostgreSQL全文検索用
+
   // 関連情報
   images       CircleImage[]
   reviews      Review[]
@@ -73,20 +95,43 @@ model Circle {
   events       Event[]
   favorites    Favorite[]
   applications Application[]
+  // 地理的検索用インデックス（将来的に使用）
+  // @@index([latitude, longitude]) // 実際の実装時はPostGISのGiSTインデックスを使用
+
+  // インデックス定義（検索パフォーマンス向上）
+  @@index([prefecture])
+  @@index([city])
+  @@index([isRecruiting])
+  @@index([averageRating])
+  @@index([fee])
+  @@index([skillLevel]) // GINインデックス（配列検索用）
+  @@index([createdAt])
+  // 複合インデックス（よく使われる検索条件の組み合わせ）
+  @@index([isRecruiting, prefecture])
+  @@index([isRecruiting, averageRating])
+  @@index([prefecture, city])
 }
 
+// ============================================
 // サークル画像モデル
+// ============================================
 model CircleImage {
   id        String   @id @default(cuid())
   url       String
   caption   String?
   isMain    Boolean  @default(false)
+  order     Int      @default(0) // 表示順序
   createdAt DateTime @default(now())
   circleId  String
   circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@index([circleId])
+  @@index([circleId, isMain])
 }
 
+// ============================================
 // レビューモデル
+// ============================================
 model Review {
   id        String   @id @default(cuid())
   rating    Int // 1-5の評価
@@ -97,9 +142,17 @@ model Review {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   circleId  String
   circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, circleId]) // 1ユーザー1サークルにつき1レビュー
+  @@index([circleId])
+  @@index([circleId, rating])
+  @@index([userId])
+  @@index([createdAt])
 }
 
+// ============================================
 // お気に入りモデル
+// ============================================
 model Favorite {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -109,9 +162,14 @@ model Favorite {
   circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, circleId])
+  @@index([userId])
+  @@index([circleId])
+  @@index([userId, createdAt]) // ユーザーのお気に入り一覧を日付順で取得
 }
 
+// ============================================
 // イベントモデル
+// ============================================
 model Event {
   id          String    @id @default(cuid())
   title       String
@@ -123,13 +181,19 @@ model Event {
   updatedAt   DateTime  @updatedAt
   circleId    String
   circle      Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@index([circleId])
+  @@index([circleId, startDate]) // サークルの今後のイベントを取得
+  @@index([startDate]) // 全体の今後のイベントを取得
 }
 
+// ============================================
 // サークルメンバーモデル（メンバーシップ）
+// ============================================
 model CircleMember {
   id       String   @id @default(cuid())
   joinedAt DateTime @default(now())
-  status   String // active, inactive
+  status   String   @default("active") // active, inactive
   role     String? // 役割（キャプテン、会計など）
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -137,9 +201,14 @@ model CircleMember {
   circle   Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, circleId])
+  @@index([userId])
+  @@index([circleId])
+  @@index([circleId, status]) // アクティブなメンバーのみを取得
 }
 
+// ============================================
 // サークル管理者モデル
+// ============================================
 model CircleAdmin {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -150,13 +219,18 @@ model CircleAdmin {
   isOwner   Boolean  @default(false) // オーナー権限があるか
 
   @@unique([userId, circleId])
+  @@index([userId])
+  @@index([circleId])
+  @@index([circleId, isOwner]) // オーナーを取得
 }
 
+// ============================================
 // 参加申請モデル
+// ============================================
 model Application {
   id          String    @id @default(cuid())
   message     String?
-  status      String // pending, approved, rejected
+  status      String    @default("pending") // pending, approved, rejected
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   processedAt DateTime?
@@ -164,4 +238,9 @@ model Application {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   circleId    String
   circle      Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([circleId])
+  @@index([circleId, status]) // サークルの申請状況を取得
+  @@index([status, createdAt]) // 申請一覧をステータスと日付で取得
 }

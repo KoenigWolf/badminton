@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
@@ -21,34 +20,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
-// フォームのスキーマを定義
-const loginSchema = z.object({
-  email: z.string().email({
-    message: "有効なメールアドレスを入力してください",
-  }),
-  password: z.string().min(8, {
-    message: "パスワードは8文字以上である必要があります",
-  }),
-});
-
-// 新規登録フォームのスキーマを定義
-const signupSchema = loginSchema.extend({
-  name: z.string().min(2, {
-    message: "名前は2文字以上入力してください",
-  }),
-  password: z.string().min(8, {
-    message: "パスワードは8文字以上である必要があります",
-  }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "パスワードが一致しません",
-  path: ["confirmPassword"],
-});
+import { loginSchema, signupSchema } from "@/lib/validations";
+import { logger } from "@/lib/logger";
 
 // フォームの型定義
-type LoginFormValues = z.infer<typeof loginSchema>;
-type SignupFormValues = z.infer<typeof signupSchema>;
+import type { LoginSchema, SignupSchema } from "@/lib/validations";
+
+type LoginFormValues = LoginSchema;
+type SignupFormValues = SignupSchema;
 
 export function AuthForm({
   type,
@@ -114,7 +93,7 @@ export function AuthForm({
           router.push(callbackUrl);
           router.refresh(); // 認証状態をページに反映するためにリフレッシュ
         } catch (error) {
-          console.error("Login error:", error);
+          logger.error("Login error", error);
           toast.error("ログインエラー", {
             description: "処理中にエラーが発生しました。もう一度お試しください。",
           });
@@ -138,7 +117,7 @@ export function AuthForm({
         callbackUrl,
       });
     } catch (error) {
-      console.error(`${provider} login error:`, error);
+      logger.error(`${provider} login error`, error);
       toast.error("ログインエラー", {
         description: `${provider}でのログインに失敗しました。もう一度お試しください。`,
       });

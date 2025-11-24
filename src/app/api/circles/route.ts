@@ -1,42 +1,23 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-
-// ─────────────────────────────
-// バリデーションスキーマの定義
-// ─────────────────────────────
-const circleSchema = z.object({
-  name: z.string().min(1, { message: "サークル名は必須です" }),
-  description: z.string().min(1, { message: "説明文は必須です" }),
-  prefecture: z.string().min(1, { message: "都道府県は必須です" }),
-  city: z.string().min(1, { message: "市区町村は必須です" }),
-  address: z.string().optional(),
-  activityFrequency: z.string().min(1, { message: "活動頻度は必須です" }),
-  activityDays: z.array(z.string()).min(1, { message: "活動曜日は1つ以上選択してください" }),
-  activityTimes: z.array(z.string()).min(1, { message: "活動時間帯は1つ以上選択してください" }),
-  skillLevel: z.array(z.string()).min(1, { message: "対象レベルは1つ以上選択してください" }),
-  fee: z.number().min(0, { message: "月会費は0以上の数値を入力してください" }),
-  memberCount: z.number().optional(),
-  website: z.string().url().optional().nullable(),
-  socialLinks: z.any().optional(),
-  facilities: z.array(z.string()).optional(),
-  equipments: z.array(z.string()).optional(),
-  ageGroups: z.array(z.string()).optional(),
-  genderRatio: z.string().optional(),
-});
+import { circleSchema } from "@/lib/validations";
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@/lib/api-response";
+import { logger } from "@/lib/logger";
+import { getQueryParams, validateRequest } from "@/lib/api-handler";
+import { PAGINATION } from "@/constants";
 
 // ─────────────────────────────
 // GET: サークル一覧の取得
 // ─────────────────────────────
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = Number.parseInt(searchParams.get("page") || "1", 10);
-    const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
-    const search = searchParams.get("search") || "";
-    const prefecture = searchParams.get("prefecture");
-    const skillLevel = searchParams.get("skillLevel");
+    const { page, limit, search, prefecture, skillLevel } = getQueryParams(request);
 
     // 検索条件の構築
     const where: Prisma.CircleWhereInput = {
@@ -87,44 +68,35 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({
-      circles,
-      pagination: {
-        total,
-        pages: Math.ceil(total / limit),
-        current: page,
-        limit,
+    return successResponse(
+      {
+        circles,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          current: page,
+          limit,
+        },
       },
-    });
-  } catch (error) {
-    console.error("Circles fetch error:", error);
-    return NextResponse.json(
-      { message: "サークル情報の取得に失敗しました" },
-      { status: 500 }
+      "サークル一覧を取得しました"
     );
+  } catch (error) {
+    logger.error("Circles fetch error", error);
+    return serverErrorResponse("サークル情報の取得に失敗しました");
   }
 }
 
 // ─────────────────────────────
 // POST: 新規サークルの作成
 // ─────────────────────────────
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-
-    // バリデーション
-    const result = circleSchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: "入力データが不正です", errors: result.error.errors },
-        { status: 400 }
-      );
-    }
+    const data = await validateRequest(request, circleSchema);
 
     // サークルの作成
     const circle = await prisma.circle.create({
       data: {
-        ...result.data,
+        ...data,
         isRecruiting: true,
       },
       include: {
@@ -132,42 +104,30 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(
-      { message: "サークルが正常に作成されました", circle },
-      { status: 201 }
-    );
+    return successResponse(circle, "サークルが正常に作成されました", 201);
   } catch (error) {
-    console.error("Circle creation error:", error);
-    return NextResponse.json(
-      { message: "サークルの作成に失敗しました" },
-      { status: 500 }
-    );
+    if (error instanceof Response) {
+      return error;
+    }
+    logger.error("Circle creation error", error);
+    return serverErrorResponse("サークルの作成に失敗しました");
   }
 }
 
 // ─────────────────────────────
 // PUT: サークル情報の更新
 // ─────────────────────────────
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { message: "サークルIDは必須です" },
-        { status: 400 }
-      );
+      return errorResponse("サークルIDは必須です", 400);
     }
 
     // バリデーション
-    const result = circleSchema.partial().safeParse(updateData);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: "入力データが不正です", errors: result.error.errors },
-        { status: 400 }
-      );
-    }
+    const data = circleSchema.partial().parse(updateData);
 
     // サークルの存在確認
     const existingCircle = await prisma.circle.findUnique({
@@ -175,47 +135,41 @@ export async function PUT(request: Request) {
     });
 
     if (!existingCircle) {
-      return NextResponse.json(
-        { message: "指定されたサークルが見つかりません" },
-        { status: 404 }
-      );
+      return notFoundResponse("指定されたサークルが見つかりません");
     }
 
     // サークル情報の更新
     const updatedCircle = await prisma.circle.update({
       where: { id },
-      data: result.data,
+      data,
       include: {
         images: true,
       },
     });
 
-    return NextResponse.json({
-      message: "サークル情報が正常に更新されました",
-      circle: updatedCircle,
-    });
-  } catch (error) {
-    console.error("Circle update error:", error);
-    return NextResponse.json(
-      { message: "サークル情報の更新に失敗しました" },
-      { status: 500 }
+    return successResponse(
+      updatedCircle,
+      "サークル情報が正常に更新されました"
     );
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+    logger.error("Circle update error", error);
+    return serverErrorResponse("サークル情報の更新に失敗しました");
   }
 }
 
 // ─────────────────────────────
 // DELETE: サークルの削除
 // ─────────────────────────────
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { message: "サークルIDは必須です" },
-        { status: 400 }
-      );
+      return errorResponse("サークルIDは必須です", 400);
     }
 
     // サークルの存在確認
@@ -224,10 +178,7 @@ export async function DELETE(request: Request) {
     });
 
     if (!existingCircle) {
-      return NextResponse.json(
-        { message: "指定されたサークルが見つかりません" },
-        { status: 404 }
-      );
+      return notFoundResponse("指定されたサークルが見つかりません");
     }
 
     // サークルの削除（関連データも自動的に削除される）
@@ -235,14 +186,9 @@ export async function DELETE(request: Request) {
       where: { id },
     });
 
-    return NextResponse.json({
-      message: "サークルが正常に削除されました",
-    });
+    return successResponse(null, "サークルが正常に削除されました");
   } catch (error) {
-    console.error("Circle deletion error:", error);
-    return NextResponse.json(
-      { message: "サークルの削除に失敗しました" },
-      { status: 500 }
-    );
+    logger.error("Circle deletion error", error);
+    return serverErrorResponse("サークルの削除に失敗しました");
   }
 }

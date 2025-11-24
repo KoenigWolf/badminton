@@ -3,33 +3,17 @@
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
+import { signupSchema } from "@/lib/validations";
+import type { SignupSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const signupSchema = z
-  .object({
-    name: z.string().min(2, {
-      message: "名前は2文字以上入力してください",
-    }),
-    email: z.string().email({
-      message: "有効なメールアドレスを入力してください",
-    }),
-    password: z.string().min(8, {
-      message: "パスワードは8文字以上である必要があります",
-    }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "パスワードが一致しません",
-    path: ["confirmPassword"],
-  });
-
-type SignupFormValues = z.infer<typeof signupSchema>;
+type SignupFormValues = SignupSchema;
 
 function SignupFormContent() {
   const router = useRouter();
@@ -85,7 +69,7 @@ function SignupFormContent() {
         });
 
         if (result?.error) {
-          console.error("Auto login error:", result.error);
+          logger.error("Auto login error", result.error);
           toast.error("自動ログインに失敗しました", {
             description: "ログインページでログインしてください。",
           });
@@ -96,14 +80,14 @@ function SignupFormContent() {
         router.push(callbackUrl);
         router.refresh();
       } catch (loginError) {
-        console.error("Auto login error:", loginError);
+        logger.error("Auto login error", loginError);
         toast.error("自動ログインに失敗しました", {
           description: "ログインページでログインしてください。",
         });
         router.push("/auth/login");
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      logger.error("Signup error", error);
       toast.error("アカウント作成エラー", {
         description:
           error instanceof Error

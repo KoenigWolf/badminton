@@ -16,6 +16,8 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
+import { NAV_LINKS, USER_MENU_ITEMS } from "@/constants";
 import { GiShuttlecock } from "react-icons/gi";
 import { FaBars } from "react-icons/fa";
 import { BsSunFill, BsMoonFill } from "react-icons/bs";
@@ -69,43 +71,6 @@ interface MobileMenuProps {
 }
 
 // 定数
-
-/**
- * グローバルナビゲーションリンク
- * - サイト内の主要なページへのリンクを定義
- * - アクセシビリティ向上のためariaLabelを設定
- */
-const NAV_LINKS: NavLink[] = [
-  { 
-    href: "/search", 
-    label: "サークルを探す", 
-    ariaLabel: "バドミントンサークルを探す" 
-  },
-  { 
-    href: "/register-circle", 
-    label: "サークルを登録する", 
-    ariaLabel: "あなたのバドミントンサークルを登録する" 
-  },
-  { 
-    href: "/about", 
-    label: "当サイトについて", 
-    ariaLabel: "BadFinderサイトの詳細情報" 
-  },
-  { 
-    href: "/faq", 
-    label: "よくある質問", 
-    ariaLabel: "よくある質問と回答" 
-  },
-];
-
-/**
- * 認証済みユーザー用メニュー項目
- * オブジェクト配列で管理することで将来的な拡張が容易
- */
-const USER_MENU_ITEMS = [
-  { href: "/dashboard", label: "マイページ", ariaLabel: "マイページに移動" },
-  { href: "/profile", label: "プロフィール", ariaLabel: "プロフィール設定に移動" },
-];
 
 // ヘルパー関数
 
@@ -380,7 +345,7 @@ export default function Header() {
       await signOut({ redirect: false });
       toast.success("ログアウトしました");
     } catch (error) {
-      console.error("ログアウトエラー：", error);
+      logger.error("ログアウトエラー", error);
       toast.error("ログアウト中にエラーが発生しました");
     }
   };

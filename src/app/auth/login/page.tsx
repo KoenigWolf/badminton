@@ -4,24 +4,17 @@ import Link from "next/link";
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
+import { loginSchema } from "@/lib/validations";
+import type { LoginSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const loginSchema = z.object({
-  email: z.string().email({
-    message: "有効なメールアドレスを入力してください",
-  }),
-  password: z.string().min(8, {
-    message: "パスワードは8文字以上である必要があります",
-  }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = LoginSchema;
 
 function LoginForm() {
   const router = useRouter();
@@ -65,7 +58,7 @@ function LoginForm() {
       router.push(callbackUrl);
       router.refresh();
     } catch (error) {
-      console.error("Login error:", error);
+      logger.error("Login error", error);
       toast.error("ログインエラー", {
         description: "処理中にエラーが発生しました。もう一度お試しください。",
       });

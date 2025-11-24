@@ -190,8 +190,13 @@ export default function RegisterCirclePage() {
       
       // if (!response.ok) throw new Error('サークル登録に失敗しました');
       
-      console.log('送信データ:', data);
-      console.log('画像:', images);
+      // 開発環境でのみデバッグログを出力
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { logger } = require('@/lib/logger');
+        logger.debug('送信データ:', data);
+        logger.debug('画像:', images);
+      }
       
       // 成功時の処理 - 一時的にTimeoutで成功をシミュレート
       setTimeout(() => {
